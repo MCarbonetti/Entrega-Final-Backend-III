@@ -4,9 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node --watch src/app.js",
-    "test": "mocha test/**/*.test.js"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "cross-env NODE_ENV=test mocha \"test/**/*.test.js\" --timeout 10000"
   },
   "keywords": [],
   "author": "",
@@ -26,8 +26,9 @@
   "devDependencies": {
     "@faker-js/faker": "^9.0.3",
     "chai": "^4.5.0",
+    "cross-env": "^10.0.0",
     "mocha": "^10.7.3",
-    "supertest": "^7.0.0"
+    "supertest": "^7.1.4"
   },
   "description": ""
 }

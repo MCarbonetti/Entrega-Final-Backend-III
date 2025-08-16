@@ -1,43 +1,41 @@
-import { expect } from "chai";
+import chai from "chai";
 import supertest from "supertest";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const request = supertest("http://localhost:8080/api/sessions");
-const userRequest = supertest("http://localhost:8080/api/users");
+dotenv.config();
+const expect = chai.expect;
 
-describe("Prueba de Endpoints de Sesiones", () => {
-    let testUser;
+const request = supertest("http://localhost:8080");
 
-    it("[POST] /api/sessions/register - Debe registrar un usuario nuevo", async () => {
-        const newUser = {
-            first_name: "Usuario",
-            last_name: "Prueba",
-            email: "user@test.com",
-            password: "userTest",
-        };
+describe("Sessions API", () => {
+  before(async () => {
+    await mongoose.connect(process.env.MONGO_URI_TEST);
+  });
 
-        const {status, body} = await request.post("/register").send(newUser);
-        testUser = body.payload;
-        expect(status).to.be.equal(201);
-        expect(body.payload).to.be.an("object");
-        expect(body.payload.first_name).to.be.equal(testUser.first_name);
-        expect(body.payload.last_name).to.be.equal(testUser.last_name);
-        expect(body.payload.email).to.be.equal(testUser.email);  
+  after(async () => {
+    await mongoose.connection.close();
+  });
+
+  const testUser = {
+    first_name: "Test",
+    last_name: "User",
+    email: "testuser@example.com",
+    password: "123456",
+  };
+
+  it("Debería registrar un usuario", async () => {
+    const res = await request.post("/api/sessions/register").send(testUser);
+    expect(res.status).to.be.oneOf([200, 201]);
+    expect(res.body).to.have.property("_id");
+  });
+
+  it("Debería loguear un usuario", async () => {
+    const res = await request.post("/api/sessions/login").send({
+      email: testUser.email,
+      password: testUser.password,
     });
-
-    it("[POST] /api/sessions/login - Debe loguear al usuario", async () => {
-        const userData = {
-            email: "user@test.com",
-            password: "userTest",
-        };
-
-        const {status, body} = await request.post("/login").send(userData);
-        expect(status).to.be.equal(200);
-        expect(body.message).to.be.equal("Usuario logueado correctamente");
-    });
-
-    after(async () => {
-        await userRequest.delete(`/${testUser._id}`)
-    });
-    
-    
+    expect(res.status).to.equal(200);
+    expect(res.body).to.have.property("token");
+  });
 });

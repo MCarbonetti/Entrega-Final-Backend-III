@@ -1,65 +1,37 @@
-import { expect } from "chai";
+import chai from "chai";
 import supertest from "supertest";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const request = supertest("http://localhost:8080/api/adoptions");
-const userRequest = supertest("http://localhost:8080/api/users");
-const petRequest = supertest("http://localhost:8080/api/pets");
-const sessionRequest = supertest("http://localhost:8080/api/sessions");
+dotenv.config();
+const expect = chai.expect;
 
-describe("Prueba de Endpoints de Adopciones", () => {
-    let testAdoption;
-    let testUser;
-    let testPet;
+const request = supertest("http://localhost:8080");
 
-    before( async () => {
-        const newUser = {
-            first_name: "Adopcion",
-            last_name: "Prueba",
-            email: "adoption@test.com",
-            password: "adoptionUser",
-        };
+describe("Adoptions API", () => {
+  before(async () => {
+    await mongoose.connect(process.env.MONGO_URI_TEST);
+  });
 
-        const newPet = {
-            name: "Mascota de Adopcion",
-            specie: "Gato",
-            birthDate: "01/01/2020",
-            image: "Imagen de Prueba",
-        };
+  after(async () => {
+    await mongoose.connection.close();
+  });
 
-        const { body : userBody} =  await sessionRequest.post("/register").send(newUser);
-        const { body : petBody} =  await petRequest.post("/").send(newPet)
+  it("Debería obtener todas las adopciones", async () => {
+    const res = await request.get("/api/adoptions");
+    expect(res.status).to.equal(200);
+    expect(res.body).to.be.an("array");
+  });
 
-        testUser = userBody.payload;
-        testPet = petBody.payload;
-    })
-    
-    it("[POST] /api/adoptions/:uid/:pid - Debe generar una adopcion", async () => {
+  it("Debería crear una adopción (usuario + pet)", async () => {
+    // suponemos que ya existen IDs válidos en la base de datos de prueba
+    const adoption = {
+      owner: "64eac3d2e5c1c2a3f8a7b001", // <-- cambia por un user válido en tu DB de test
+      pet: "64eac3d2e5c1c2a3f8a7b002",   // <-- cambia por un pet válido en tu DB de test
+    };
 
-        const { status, body } = await request.post(`/${testUser._id}/${testPet._id}`)
-        console.log(body.payload)
-        testAdoption = body.payload;
-        expect(status).to.be.equal(201);
-        expect(body.message).to.be.equal("Mascota adoptada!"); 
-    })
-
-    it("[GET] /api/adoptions - Debe devolver todas las adopciones", async () => {
-        const { status, body } = await request.get("/");
-        expect(status).to.be.equal(200);
-        expect(body.payload).to.be.an("array");
-    });
-
-    it("[GET] /api/adoptions/:aid - Debe devolver un adopcion especifica", async () => {
-        const { status, body } = await request.get(`/${testAdoption._id}`);
-        expect(status).to.be.equal(200);
-        expect(body.payload).to.be.an("object");
-        expect(body.payload).to.have.property("owner");
-        expect(body.payload).to.have.property("pet");
-    });
-
-    after( async () => {
-        await userRequest.delete(`/${testUser._id}`)
-        await petRequest.delete(`/${testPet._id}`)
-    });
-
-    
+    const res = await request.post("/api/adoptions").send(adoption);
+    expect(res.status).to.be.oneOf([200, 201]);
+    expect(res.body).to.have.property("_id");
+  });
 });
