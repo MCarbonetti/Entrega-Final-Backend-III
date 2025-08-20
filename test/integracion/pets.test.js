@@ -6,7 +6,8 @@ import dotenv from "dotenv";
 dotenv.config();
 const expect = chai.expect;
 
-const request = supertest("http://localhost:8080"); // tu servidor debe estar corriendo
+const PORT = process.env.PORT || 3000;
+const request = supertest(`http://localhost:${PORT}`);
 
 describe("Pets API", () => {
   before(async () => {
@@ -24,10 +25,11 @@ describe("Pets API", () => {
   });
 
   it("Debería crear un pet nuevo", async () => {
-    const newPet = { name: "Firulais", specie: "dog", age: 3 };
+    const newPet = { name: "Firulais", specie: "dog", birthDate: "2020-01-01" };
     const res = await request.post("/api/pets").send(newPet);
     expect(res.status).to.equal(201);
     expect(res.body).to.have.property("_id");
     expect(res.body.name).to.equal("Firulais");
   });
 });
+

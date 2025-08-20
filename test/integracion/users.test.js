@@ -6,7 +6,8 @@ import dotenv from "dotenv";
 dotenv.config();
 const expect = chai.expect;
 
-const request = supertest("http://localhost:8080");
+const PORT = process.env.PORT || 3000;
+const request = supertest(`http://localhost:${PORT}`);
 
 describe("Users API", () => {
   before(async () => {
@@ -27,7 +28,7 @@ describe("Users API", () => {
     const newUser = {
       first_name: "Carlos",
       last_name: "Lopez",
-      email: `carlos${Date.now()}@example.com`, 
+      email: `carlos${Date.now()}@example.com`,
       password: "123456",
     };
     const res = await request.post("/api/users").send(newUser);

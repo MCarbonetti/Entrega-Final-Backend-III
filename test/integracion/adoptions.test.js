@@ -24,10 +24,10 @@ describe("Adoptions API", () => {
   });
 
   it("Debería crear una adopción (usuario + pet)", async () => {
-    // suponemos que ya existen IDs válidos en la base de datos de prueba
+    
     const adoption = {
-      owner: "64eac3d2e5c1c2a3f8a7b001", // <-- cambia por un user válido en tu DB de test
-      pet: "64eac3d2e5c1c2a3f8a7b002",   // <-- cambia por un pet válido en tu DB de test
+      owner: "64eac3d2e5c1c2a3f8a7b001", 
+      pet: "64eac3d2e5c1c2a3f8a7b002",   
     };
 
     const res = await request.post("/api/adoptions").send(adoption);
